@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Director Tax Planner (2026/27)</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b1329; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="h-full flex flex-col overflow-x-hidden">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white">UK Director's Tax Planner</h1>
+                <p class="text-xs text-slate-400 font-medium">2026/27 legislated rates · salary/dividend optimiser</p>
+            </div>
+        </div>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            FY 2026/27
+        </span>
+    </header>
+
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 overflow-y-auto">
+
+        <!-- LEFT PANEL -->
+        <section class="lg:col-span-4 flex flex-col space-y-6">
+
+            <!-- Planning Mode Toggle -->
+            <div class="glass-panel p-4 rounded-2xl">
+                <label class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block mb-2">Planning Mode</label>
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-slate-800">
+                    <button type="button" onclick="setTargetMode('company')" id="btnTargetCompany"
+                        class="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all text-center">
+                        Company → Net Pay
+                    </button>
+                    <button type="button" onclick="setTargetMode('target_net')" id="btnTargetPersonal"
+                        class="px-3 py-1.5 text-[11px] font-semibold rounded-lg transition-all text-center">
+                        Target Net → Gross
+                    </button>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2" id="modeDescription">Enter company gross profit to see your net take-home and tax breakdown.</p>
+            </div>
+
+            <!-- Main Input Slider -->
+            <div class="glass-panel p-5 rounded-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <label id="inputLabel" for="grossInput" class="text-xs font-semibold text-slate-300">Company Gross Profit</label>
+                    <input type="number" id="grossValInput" min="5000" max="200000" step="500" value="50000"
+                        class="w-28 bg-slate-900 border border-slate-800 rounded px-2 py-0.5 text-right font-bold text-indigo-400 focus:outline-none focus:border-indigo-500 text-sm">
+                </div>
+                <input type="range" id="grossInput" min="5000" max="200000" step="500" value="50000"
+                    class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Quick Presets</label>
+                    <div class="grid grid-cols-5 gap-1.5" id="companyPresets">
+                        <button type="button" onclick="setBaselinePreset(25000)"  class="preset-btn">£25k</button>
+                        <button type="button" onclick="setBaselinePreset(50000)"  class="preset-btn">£50k</button>
+                        <button type="button" onclick="setBaselinePreset(100000)" class="preset-btn">£100k</button>
+                        <button type="button" onclick="setBaselinePreset(150000)" class="preset-btn">£150k</button>
+                        <button type="button" onclick="setBaselinePreset(200000)" class="preset-btn">£200k</button>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 hidden" id="netPresets">
+                        <button type="button" onclick="setBaselinePreset(20000)" class="preset-btn">£20k</button>
+                        <button type="button" onclick="setBaselinePreset(35000)" class="preset-btn">£35k</button>
+                        <button type="button" onclick="setBaselinePreset(50000)" class="preset-btn">£50k</button>
+                        <button type="button" onclick="setBaselinePreset(75000)" class="preset-btn">£75k</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actual Company Profit (target_net mode only) -->
+            <div class="glass-panel p-5 rounded-2xl space-y-3 hidden" id="actualGrossCard">
+                <div>
+                    <label class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block mb-0.5">Actual Company Profit</label>
+                    <p class="text-[10px] text-slate-500">Optional — enter your projected profit to see how much exceeds your target</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400 font-bold">£</span>
+                    <input type="number" id="actualGrossInput" min="0" step="500" placeholder="e.g. 75000"
+                        class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="hidden items-center justify-between p-3 rounded-xl border" id="excessPanel">
+                    <span class="text-xs font-semibold" id="excessLabel">Excess to deploy</span>
+                    <span class="text-sm font-extrabold" id="excessDisplay">—</span>
+                </div>
+            </div>
+
+            <!-- Remuneration Strategy -->
+            <div class="glass-panel p-6 rounded-2xl space-y-5">
+                <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
+                    <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <span>⚙️</span> Remuneration Strategy
+                    </h2>
+                    <span id="optimizationBadge" class="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Auto-Optimized
+                    </span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-indigo-950/20 rounded-xl border border-indigo-500/20">
+                    <div>
+                        <span class="text-xs font-bold text-indigo-300 block">Auto-Optimize Remuneration</span>
+                        <span class="text-[10px] text-slate-400">Find absolute mathematical maximum take-home</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="autoOptimize" checked class="sr-only peer" onchange="toggleAutoOptimize()">
+                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 peer-checked:after:bg-white"></div>
+                    </label>
+                </div>
+
+                <div class="space-y-3" id="salaryControlWrapper">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-semibold text-slate-300">Salary Strategy Preset</label>
+                        <div class="flex gap-1 flex-wrap">
+                            <button type="button" onclick="setSalaryPreset(50270)" id="btnHrl" class="salary-preset-btn">£50,270 (HRL)</button>
+                            <button type="button" onclick="setSalaryPreset(12570)" id="btnOpt" class="salary-preset-btn">£12,570</button>
+                            <button type="button" onclick="setSalaryPreset(6708)"  id="btnLel" class="salary-preset-btn">£6,708</button>
+                            <button type="button" onclick="setSalaryPreset(0)"     id="btnZero" class="salary-preset-btn">£0</button>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 pt-1">
+                        <div class="flex justify-between items-center text-xs text-slate-400">
+                            <span>Annual Salary (£)</span>
+                            <input type="number" id="directorSalaryText" min="0" max="60000" step="1" value="12570"
+                                class="w-24 bg-slate-900 border border-slate-800 rounded px-2 py-0.5 text-right font-bold text-indigo-400 focus:outline-none focus:border-indigo-500 text-xs">
+                        </div>
+                        <input type="range" id="directorSalary" min="0" max="60000" step="1" value="12570"
+                            class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-300 block">Employment Allowance (EA)</span>
+                        <span class="text-[10px] text-slate-500">Wipes out £10,500 of Employer's NIC</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="empAllowance" class="sr-only peer" onchange="calculateAll()">
+                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
+                    </label>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="associatedCos" class="text-[11px] font-semibold text-slate-400 block">Associated Companies</label>
+                    <select id="associatedCos" onchange="calculateAll()"
+                        class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="1" selected>None (Sole Company — £50k lower limit)</option>
+                        <option value="2">1 Associated Company (Limits Halved — £25k)</option>
+                        <option value="3">2 Associated Companies (Limits ÷ 3)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Instant Metrics -->
+            <div class="glass-panel p-5 rounded-2xl space-y-4">
+                <h3 class="text-xs font-bold text-slate-300 border-b border-slate-800 pb-2 uppercase tracking-wider">Instant Metrics</h3>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800/40">
+                        <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider" id="netPayLabel">Net Take-Home</span>
+                        <span class="text-lg font-extrabold text-emerald-400 block mt-0.5" id="netPayDisplay">—</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800/40">
+                        <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider" id="taxLoadLabel">All-In Tax Rate</span>
+                        <span class="text-lg font-extrabold text-rose-400 block mt-0.5" id="taxLoadDisplay">—</span>
+                    </div>
+                </div>
+
+                <!-- Required gross (target_net mode) -->
+                <div class="hidden" id="requiredGrossPanel">
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/20">
+                        <span class="text-[9px] text-amber-500/80 uppercase font-bold tracking-wider">Required Company Gross Profit</span>
+                        <span class="text-lg font-extrabold text-amber-400 block mt-0.5" id="requiredGrossDisplay">—</span>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-950/20 border border-indigo-500/20 p-4 rounded-xl space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-semibold text-indigo-300" id="marginalLabel">Marginal Rate</span>
+                        <span class="text-xs font-bold text-indigo-200" id="marginalRateDisplay">—</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed" id="marginalExplainer">Calculating…</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL -->
+        <section class="lg:col-span-8 flex flex-col space-y-6">
+
+            <!-- Chart -->
+            <div class="glass-panel p-6 rounded-2xl flex flex-col space-y-4">
+                <div class="flex justify-between items-center flex-wrap gap-2">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                            <span>📈</span> <span id="chartTitle">Company Profit vs Net Take-Home</span>
+                        </h2>
+                        <p class="text-[11px] text-slate-400" id="chartSubtitle">See where tax efficiency flattens across the profit range</p>
+                    </div>
+                    <div class="flex space-x-2 flex-wrap gap-1">
+                        <span class="inline-flex items-center space-x-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[9px] text-emerald-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>Net Take-Home</span>
+                        </span>
+                        <span class="inline-flex items-center space-x-1.5 px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-[9px] text-indigo-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            <span>Gross Reference</span>
+                        </span>
+                        <span class="inline-flex items-center space-x-1.5 px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-300 hidden" id="targetLegend">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            <span>Target Net</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="w-full relative h-[280px]">
+                    <canvas id="taxChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Ledger -->
+            <div class="glass-panel p-6 rounded-2xl">
+                <h2 class="text-sm font-bold text-slate-200 border-b border-slate-800 pb-3 mb-4 flex items-center gap-2">
+                    <span>🧾</span> Combined Corporate & Personal Tax Ledger
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left text-slate-300">
+                        <thead class="text-slate-400 uppercase text-[9px] border-b border-slate-800">
+                            <tr>
+                                <th class="py-2">Planning Layer</th>
+                                <th class="py-2 text-right">Detail</th>
+                                <th class="py-2 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50">
+                            <tr>
+                                <td class="py-2.5 font-medium text-slate-200" id="ledgerBaseTitle">Company Gross Profit</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgerBaseFormula">—</td>
+                                <td class="py-2.5 text-right font-bold" id="ledgCompanyGross">—</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 pl-4 text-slate-400">Director's Base Salary</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgSalaryFormula">—</td>
+                                <td class="py-2.5 text-right text-slate-400" id="ledgSalary">—</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 pl-4 text-slate-400">Employer's NIC</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgEmployerNicFormula">15% above £5,000 ST</td>
+                                <td class="py-2.5 text-right text-rose-400/80" id="ledgEmployerNic">—</td>
+                            </tr>
+                            <tr class="bg-indigo-950/10">
+                                <td class="py-2.5 font-medium text-indigo-300">Taxable Corporate Profit</td>
+                                <td class="py-2.5 text-right text-slate-500">Subject to Corporation Tax</td>
+                                <td class="py-2.5 text-right font-bold text-indigo-300" id="ledgTaxableProfit">—</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 pl-4 text-slate-400">Corporation Tax</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgCtFormula">—</td>
+                                <td class="py-2.5 text-right text-rose-400/80" id="ledgCt">—</td>
+                            </tr>
+                            <tr class="bg-indigo-950/10">
+                                <td class="py-2.5 font-medium text-indigo-300">Net Dividends Declared</td>
+                                <td class="py-2.5 text-right text-slate-500">Retained profit to distribute</td>
+                                <td class="py-2.5 text-right font-bold text-indigo-300" id="ledgNetDividends">—</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 font-medium text-slate-200">Personal Allowance</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgPersonalAllowanceFormula">Tapered above £100k</td>
+                                <td class="py-2.5 text-right font-bold text-emerald-400" id="ledgPersonalAllowance">—</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 pl-4 text-slate-400">Income Tax & Employee NIC (Salary)</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgSalaryTaxFormula">—</td>
+                                <td class="py-2.5 text-right text-rose-400/80" id="ledgSalaryTax">—</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 pl-4 text-slate-400">Dividend Tax</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgDivBasicFormula">0% (£500 allowance) / 10.75% / 35.75% / 39.35%</td>
+                                <td class="py-2.5 text-right text-rose-400/80" id="ledgDivBasic">—</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 pl-4 text-slate-400">PA Taper (allowance lost)</td>
+                                <td class="py-2.5 text-right text-slate-500" id="ledgTaperFormula">No taper</td>
+                                <td class="py-2.5 text-right text-amber-400/80" id="ledgTaper">—</td>
+                            </tr>
+                            <tr class="bg-emerald-950/10 font-bold text-emerald-400 text-sm">
+                                <td class="py-3">True Net Take-Home Pay</td>
+                                <td class="py-3 text-right text-emerald-500 font-medium">Salary + Dividends after personal tax</td>
+                                <td class="py-3 text-right text-base" id="ledgTrueNet">—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <style>
+        .preset-btn {
+            padding: 4px 4px;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgb(15 23 42 / 0.8);
+            border: 1px solid rgb(30 41 59);
+            border-radius: 4px;
+            text-align: center;
+            color: rgb(203 213 225);
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .preset-btn:hover { border-color: rgb(51 65 85); color: white; }
+        .salary-preset-btn {
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 4px;
+            border: 1px solid rgb(30 41 59);
+            background: rgb(15 23 42 / 0.8);
+            color: rgb(148 163 184);
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+        .salary-preset-btn:hover { border-color: rgb(51 65 85); color: white; }
+    </style>
+
+    <script>
+        let targetMode = 'company';
+        let chartInstance = null;
+
+        // ── Mode switching ────────────────────────────────────────────────────────
+
+        function setTargetMode(mode) {
+            targetMode = mode;
+            const grossInput = document.getElementById('grossInput');
+            const grossValInput = document.getElementById('grossValInput');
+
+            if (mode === 'target_net') {
+                document.getElementById('inputLabel').innerText = "Target Net Take-Home";
+                document.getElementById('modeDescription').innerText = "Enter desired net take-home. The planner back-calculates the required company gross profit.";
+                grossInput.min = "10000"; grossInput.max = "120000"; grossInput.step = "500";
+                grossValInput.min = "10000"; grossValInput.max = "120000"; grossValInput.step = "500";
+                if (parseFloat(grossInput.value) > 120000) { grossInput.value = 120000; grossValInput.value = 120000; }
+                show('actualGrossCard'); show('requiredGrossPanel');
+                show('targetLegend');
+                document.getElementById('companyPresets').classList.add('hidden');
+                document.getElementById('netPresets').classList.remove('hidden');
+                document.getElementById('chartSubtitle').innerText = "Amber line = target net. Dot shows the required gross profit.";
+                document.getElementById('ledgerBaseTitle').innerText = "Required Company Gross Profit";
+                document.getElementById('ledgerBaseFormula').innerText = "Back-calculated to hit target net";
+                document.getElementById('netPayLabel').innerText = "Target Net Take-Home";
+                document.getElementById('taxLoadLabel').innerText = "All-In Tax Rate";
+                document.getElementById('marginalLabel').innerText = "Extra Gross per £100 Net";
+            } else {
+                document.getElementById('inputLabel').innerText = "Company Gross Profit";
+                document.getElementById('modeDescription').innerText = "Enter company gross profit to see net take-home and full tax breakdown.";
+                grossInput.min = "5000"; grossInput.max = "200000"; grossInput.step = "500";
+                grossValInput.min = "5000"; grossValInput.max = "200000"; grossValInput.step = "500";
+                hide('actualGrossCard'); hide('requiredGrossPanel');
+                hide('targetLegend');
+                document.getElementById('companyPresets').classList.remove('hidden');
+                document.getElementById('netPresets').classList.add('hidden');
+                document.getElementById('chartSubtitle').innerText = "See where tax efficiency flattens across the profit range.";
+                document.getElementById('ledgerBaseTitle').innerText = "Company Gross Profit";
+                document.getElementById('ledgerBaseFormula').innerText = "Selected input";
+                document.getElementById('netPayLabel').innerText = "Net Take-Home";
+                document.getElementById('taxLoadLabel').innerText = "All-In Tax Rate";
+                document.getElementById('marginalLabel').innerText = "Marginal Rate";
+            }
+            calculateAll();
+        }
+
+        function show(id) { document.getElementById(id).classList.remove('hidden'); }
+        function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function setBaselinePreset(val) {
+            document.getElementById('grossInput').value = val;
+            document.getElementById('grossValInput').value = val;
+            calculateAll();
+        }
+
+        function setSalaryPreset(val) {
+            document.getElementById('directorSalary').value = val;
+            document.getElementById('directorSalaryText').value = val;
+            document.getElementById('autoOptimize').checked = false;
+            updateOptimizationBadge();
+            calculateAll();
+        }
+
+        function toggleAutoOptimize() { updateOptimizationBadge(); calculateAll(); }
+
+        function updateOptimizationBadge() {
+            const isAuto = document.getElementById('autoOptimize').checked;
+            const badge = document.getElementById('optimizationBadge');
+            const wrap = document.getElementById('salaryControlWrapper');
+            if (isAuto) {
+                badge.innerText = "Auto-Optimized";
+                badge.className = "px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                wrap.style.opacity = "0.5";
+                wrap.style.pointerEvents = "none";
+            } else {
+                badge.innerText = "Manual Control";
+                badge.className = "px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                wrap.style.opacity = "1";
+                wrap.style.pointerEvents = "";
+            }
+        }
+
+        document.getElementById('directorSalary').addEventListener('input', function(e) {
+            document.getElementById('directorSalaryText').value = e.target.value;
+            document.getElementById('autoOptimize').checked = false;
+            updateOptimizationBadge();
+            calculateAll();
+        });
+        document.getElementById('directorSalaryText').addEventListener('input', function(e) {
+            let v = Math.min(60000, Math.max(0, parseFloat(e.target.value) || 0));
+            document.getElementById('directorSalary').value = v;
+            document.getElementById('autoOptimize').checked = false;
+            updateOptimizationBadge();
+            calculateAll();
+        });
+        document.getElementById('grossInput').addEventListener('input', function(e) {
+            document.getElementById('grossValInput').value = e.target.value;
+            calculateAll();
+        });
+        document.getElementById('grossValInput').addEventListener('input', function(e) {
+            const v = Math.min(parseFloat(e.target.max), Math.max(parseFloat(e.target.min), parseFloat(e.target.value) || 0));
+            document.getElementById('grossInput').value = v;
+            calculateAll();
+        });
+        document.getElementById('actualGrossInput').addEventListener('input', calculateAll);
+
+        // ── Core calculation engine (company gross → breakdown) ───────────────────
+
+        function runCalculationEngine(inputVal, salaryVal, hasEA, assocCos) {
+            const lowerLimit = 50000 / assocCos;
+            const upperLimit = 250000 / assocCos;
+
+            // Cap salary so total payroll ≤ company gross
+            let maxSalary = hasEA ? inputVal : (inputVal > 5000 ? (inputVal + 750) / 1.15 : inputVal);
+            let salary = Math.min(salaryVal, maxSalary);
+
+            let employerNIC = (!hasEA && salary > 5000) ? (salary - 5000) * 0.15 : 0;
+            const taxableCorpProfit = Math.max(0, inputVal - salary - employerNIC);
+
+            let ct = 0, ctRule = "";
+            if (taxableCorpProfit <= lowerLimit) {
+                ct = taxableCorpProfit * 0.19; ctRule = "19% Small Profits Rate";
+            } else if (taxableCorpProfit <= upperLimit) {
+                ct = taxableCorpProfit * 0.25 - 0.015 * (upperLimit - taxableCorpProfit);
+                ctRule = "26.5% Effective Marginal CT";
+            } else {
+                ct = taxableCorpProfit * 0.25; ctRule = "25% Main Rate";
+            }
+
+            const dividends = Math.max(0, taxableCorpProfit - ct);
+            const totalPersonalIncome = salary + dividends;
+
+            // Personal allowance taper above £100k
+            let personalAllowance = 12570, taperAmount = 0, taperDetail = "No taper";
+            if (totalPersonalIncome > 100000) {
+                taperAmount = Math.min(12570, (totalPersonalIncome - 100000) / 2);
+                personalAllowance = 12570 - taperAmount;
+                taperDetail = `£${fmt0(taperAmount)} allowance lost`;
+            }
+
+            const taxableSalary = Math.max(0, salary - personalAllowance);
+            const paLeft = Math.max(0, personalAllowance - salary);
+            const totalSalaryTax = Math.min(taxableSalary, 37700) * 0.20 + Math.max(0, taxableSalary - 37700) * 0.40;
+            const employeeNIC = salary > 12570
+                ? Math.min(salary - 12570, 37700) * 0.08 + Math.max(0, salary - 50270) * 0.02
+                : 0;
+
+            // Dividend tax — work through bands in order
+            let dLeft = dividends;
+            const divPA   = Math.min(dLeft, paLeft);         dLeft -= divPA;
+            const divAllow = Math.min(dLeft, 500);           dLeft -= divAllow;
+            const cumFree = salary + divPA + divAllow;
+            const basicSpace = Math.max(0, 37700 + personalAllowance - cumFree);
+            const divBasic = Math.min(dLeft, basicSpace);    dLeft -= divBasic;
+            const higherSpace = Math.max(0, 125140 - cumFree - divBasic);
+            const divHigher = Math.min(dLeft, higherSpace);  dLeft -= divHigher;
+            const divAdditional = dLeft;
+
+            const taxDivBasic      = divBasic      * 0.1075;
+            const taxDivHigher     = divHigher     * 0.3575;
+            const taxDivAdditional = divAdditional * 0.3935;
+            const totalDividendTax = taxDivBasic + taxDivHigher + taxDivAdditional;
+
+            const totalTax   = employerNIC + ct + totalSalaryTax + employeeNIC + totalDividendTax;
+            const netTakeHome = totalPersonalIncome - totalSalaryTax - employeeNIC - totalDividendTax;
+
+            return {
+                salary, employerNIC, taxableCorpProfit, ct, ctRule,
+                dividends, personalAllowance, taperAmount, taperDetail,
+                totalSalaryTax, employeeNIC,
+                divBasic, divHigher, divAdditional,
+                taxDivBasic, taxDivHigher, taxDivAdditional, totalDividendTax,
+                totalTax, netTakeHome, totalPersonalIncome
+            };
+        }
+
+        // ── Optimisation helpers ──────────────────────────────────────────────────
+
+        // Binary search: find company gross profit that yields exactly targetNet
+        function findRequiredGrossProfit(targetNet, salary, hasEA, assocCos) {
+            let lo = Math.max(0, salary);
+            let hi = Math.max(targetNet * 4, salary + 20000);
+            // Expand upper bound if needed
+            while (runCalculationEngine(hi, salary, hasEA, assocCos).netTakeHome < targetNet) hi *= 2;
+            for (let i = 0; i < 60; i++) {
+                const mid = (lo + hi) / 2;
+                if (runCalculationEngine(mid, salary, hasEA, assocCos).netTakeHome < targetNet) lo = mid;
+                else hi = mid;
+                if (hi - lo < 0.05) break;
+            }
+            return (lo + hi) / 2;
+        }
+
+        // target_net mode: salary that minimises required gross profit (= most tax-efficient)
+        function findOptimalSalaryForTargetNet(targetNet, hasEA, assocCos) {
+            const candidates = [0, 6708, 12570, 50270].filter(s => s <= targetNet);
+            let best = candidates[0] ?? 0, minGross = Infinity;
+            for (const sal of candidates) {
+                const gross = findRequiredGrossProfit(targetNet, sal, hasEA, assocCos);
+                if (gross < minGross || (Math.abs(gross - minGross) < 0.01 && sal > best)) {
+                    minGross = gross; best = sal;
+                }
+            }
+            return best;
+        }
+
+        // company mode: salary that maximises net take-home for a given gross profit
+        function findOptimalSalary(inputVal, hasEA, assocCos) {
+            const capSal = s => {
+                const max = hasEA ? inputVal : (inputVal > 5000 ? (inputVal + 750) / 1.15 : inputVal);
+                return Math.min(s, max);
+            };
+            const candidates = [...new Set([0, 6708, 12570, 50270].map(s => Math.round(capSal(s) * 100) / 100))];
+            let best = 0, maxNet = -1;
+            for (const sal of candidates) {
+                const r = runCalculationEngine(inputVal, sal, hasEA, assocCos);
+                if (r.netTakeHome > maxNet) { maxNet = r.netTakeHome; best = sal; }
+                else if (Math.abs(r.netTakeHome - maxNet) < 0.01 && sal > best) best = sal;
+            }
+            return best;
+        }
+
+        // ── Main calculate loop ───────────────────────────────────────────────────
+
+        function calculateAll() {
+            updateOptimizationBadge();
+            const inputVal   = parseFloat(document.getElementById('grossValInput').value) || parseFloat(document.getElementById('grossInput').value);
+            const hasEA      = document.getElementById('empAllowance').checked;
+            const assocCos   = parseInt(document.getElementById('associatedCos').value);
+            const isAuto     = document.getElementById('autoOptimize').checked;
+
+            updateModeButtons();
+
+            if (targetMode === 'target_net') {
+                const targetNet = inputVal;
+
+                let salary = isAuto
+                    ? findOptimalSalaryForTargetNet(targetNet, hasEA, assocCos)
+                    : (parseFloat(document.getElementById('directorSalaryText').value) || 0);
+
+                document.getElementById('directorSalary').value = salary;
+                document.getElementById('directorSalaryText').value = salary;
+                highlightSalaryBtn(salary);
+
+                const reqGross = findRequiredGrossProfit(targetNet, salary, hasEA, assocCos);
+                const calc = runCalculationEngine(reqGross, salary, hasEA, assocCos);
+
+                updateLedger(calc, reqGross, salary, hasEA);
+
+                document.getElementById('netPayDisplay').innerText = "£" + fmt0(targetNet);
+                document.getElementById('requiredGrossDisplay').innerText = "£" + fmt0(reqGross);
+                document.getElementById('taxLoadDisplay').innerText = ((calc.totalTax / reqGross) * 100).toFixed(1) + "%";
+
+                // Marginal: extra gross needed per £100 more net
+                const reqGrossPlus = findRequiredGrossProfit(targetNet + 100, salary, hasEA, assocCos);
+                const extraGross = Math.round(reqGrossPlus - reqGross);
+                document.getElementById('marginalRateDisplay').innerText = "£" + extraGross;
+                document.getElementById('marginalExplainer').innerText =
+                    `Each extra £100 of net take-home requires £${extraGross} more company gross profit — an effective marginal rate of ${((1 - 100 / extraGross) * 100).toFixed(1)}%.`;
+
+                // Excess panel
+                const actualGross = parseFloat(document.getElementById('actualGrossInput').value) || 0;
+                const excessPanel = document.getElementById('excessPanel');
+                if (actualGross > 0) {
+                    excessPanel.classList.remove('hidden');
+                    excessPanel.classList.add('flex');
+                    const excess = actualGross - reqGross;
+                    const isShortfall = excess < 0;
+                    document.getElementById('excessLabel').innerText  = isShortfall ? "Shortfall — company needs" : "Excess to deploy (pension / invest)";
+                    document.getElementById('excessDisplay').innerText = "£" + fmt0(Math.abs(excess)) + (isShortfall ? " more" : "");
+                    document.getElementById('excessDisplay').className = "text-sm font-extrabold " + (isShortfall ? "text-rose-400" : "text-amber-400");
+                    excessPanel.className = "flex items-center justify-between p-3 rounded-xl border "
+                        + (isShortfall ? "bg-rose-950/20 border-rose-500/20" : "bg-amber-950/20 border-amber-500/20");
+                } else {
+                    excessPanel.classList.add('hidden');
+                    excessPanel.classList.remove('flex');
+                }
+
+                renderChart(salary, hasEA, assocCos, targetNet, reqGross);
+
+            } else {
+                // Company → Net mode
+                let salary = isAuto
+                    ? findOptimalSalary(inputVal, hasEA, assocCos)
+                    : (parseFloat(document.getElementById('directorSalaryText').value) || 0);
+
+                document.getElementById('directorSalary').value = salary;
+                document.getElementById('directorSalaryText').value = salary;
+                highlightSalaryBtn(salary);
+
+                const calc = runCalculationEngine(inputVal, salary, hasEA, assocCos);
+                updateLedger(calc, inputVal, salary, hasEA);
+
+                document.getElementById('netPayDisplay').innerText = "£" + fmt0(calc.netTakeHome);
+                document.getElementById('taxLoadDisplay').innerText = ((calc.totalTax / inputVal) * 100).toFixed(1) + "%";
+
+                const salaryUp = isAuto ? findOptimalSalary(inputVal + 100, hasEA, assocCos) : salary;
+                const calcUp = runCalculationEngine(inputVal + 100, salaryUp, hasEA, assocCos);
+                const margRate = ((1 - (calcUp.netTakeHome - calc.netTakeHome) / 100) * 100).toFixed(1);
+                document.getElementById('marginalRateDisplay').innerText = margRate + "%";
+                document.getElementById('marginalExplainer').innerText =
+                    `At this profit level every extra £100 of company gross yields ~£${(100 - parseFloat(margRate)).toFixed(0)} more cash in your pocket.`;
+
+                renderChart(salary, hasEA, assocCos, null, null);
+            }
+        }
+
+        // ── UI helpers ────────────────────────────────────────────────────────────
+
+        function fmt0(n) { return Math.round(n).toLocaleString('en-GB'); }
+        function fmtGBP(n) { return n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+        function updateModeButtons() {
+            const act = "px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-indigo-600 text-white shadow";
+            const inact = "px-3 py-1.5 text-[11px] font-semibold rounded-lg bg-slate-950 text-slate-400 hover:text-slate-200";
+            document.getElementById('btnTargetCompany').className  = targetMode === 'company'    ? act : inact;
+            document.getElementById('btnTargetPersonal').className = targetMode === 'target_net' ? act : inact;
+        }
+
+        function highlightSalaryBtn(salary) {
+            const sel   = "salary-preset-btn border-indigo-500 bg-indigo-500/10 text-indigo-300";
+            const unsel = "salary-preset-btn";
+            document.getElementById('btnHrl').className  = salary === 50270 ? sel : unsel;
+            document.getElementById('btnOpt').className  = salary === 12570 ? sel : unsel;
+            document.getElementById('btnLel').className  = salary === 6708  ? sel : unsel;
+            document.getElementById('btnZero').className = salary === 0     ? sel : unsel;
+        }
+
+        function updateLedger(calc, companyGross, salary, hasEA) {
+            document.getElementById('ledgCompanyGross').innerText        = "£" + fmtGBP(companyGross);
+            document.getElementById('ledgSalary').innerText              = "£" + fmtGBP(salary);
+            document.getElementById('ledgSalaryFormula').innerText       = `PA remaining: £${fmt0(Math.max(0, calc.personalAllowance - salary))}`;
+            document.getElementById('ledgEmployerNic').innerText         = "-£" + fmtGBP(calc.employerNIC);
+            document.getElementById('ledgEmployerNicFormula').innerText  = hasEA ? "Employment Allowance applied" : "15% on salary above £5,000 ST";
+            document.getElementById('ledgTaxableProfit').innerText       = "£" + fmtGBP(calc.taxableCorpProfit);
+            document.getElementById('ledgCt').innerText                  = "-£" + fmtGBP(calc.ct);
+            document.getElementById('ledgCtFormula').innerText           = calc.ctRule;
+            document.getElementById('ledgNetDividends').innerText        = "£" + fmtGBP(calc.dividends);
+            document.getElementById('ledgPersonalAllowance').innerText   = "£" + fmtGBP(calc.personalAllowance);
+            document.getElementById('ledgPersonalAllowanceFormula').innerText = `Tapered above £100k · ${calc.taperDetail}`;
+            document.getElementById('ledgSalaryTax').innerText           = "-£" + fmtGBP(calc.totalSalaryTax + calc.employeeNIC);
+            document.getElementById('ledgSalaryTaxFormula').innerText    = `IT & NIC on £${fmt0(salary)} salary`;
+            document.getElementById('ledgDivBasic').innerText            = "-£" + fmtGBP(calc.totalDividendTax);
+            document.getElementById('ledgDivBasicFormula').innerText     = `0% (£500 allowance) / 10.75% / 35.75% / 39.35%`;
+            document.getElementById('ledgTaper').innerText               = calc.taperAmount > 0 ? "£" + fmtGBP(calc.taperAmount) : "—";
+            document.getElementById('ledgTaperFormula').innerText        = calc.taperDetail;
+            document.getElementById('ledgTrueNet').innerText             = "£" + fmtGBP(calc.netTakeHome);
+        }
+
+        // ── Chart ─────────────────────────────────────────────────────────────────
+
+        function renderChart(salary, hasEA, assocCos, targetNet, requiredGross) {
+            const ctx = document.getElementById('taxChart').getContext('2d');
+            const step = 1000, min = 0, max = 200000;
+            const grossPoints = [], netPoints = [], margRatePoints = [], labels = [];
+
+            for (let v = min; v <= max; v += step) {
+                const r = runCalculationEngine(v, salary, hasEA, assocCos);
+                // Marginal rate uses optimal salary at v and v+1, independent of current user input
+                const salMarg   = findOptimalSalary(v,     hasEA, assocCos);
+                const salMargUp = findOptimalSalary(v + 1, hasEA, assocCos);
+                const rMarg   = runCalculationEngine(v,     salMarg,   hasEA, assocCos);
+                const rMargUp = runCalculationEngine(v + 1, salMargUp, hasEA, assocCos);
+                grossPoints.push(v);
+                netPoints.push(Math.round(r.netTakeHome));
+                margRatePoints.push(parseFloat(((1 - (rMargUp.netTakeHome - rMarg.netTakeHome)) * 100).toFixed(1)));
+                labels.push("£" + (v / 1000) + "k");
+            }
+
+            if (chartInstance) chartInstance.destroy();
+
+            const datasets = [
+                {
+                    label: 'Net Take-Home',
+                    data: netPoints,
+                    borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)',
+                    borderWidth: 3, fill: true, tension: 0.1, pointRadius: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Gross Reference',
+                    data: grossPoints,
+                    borderColor: '#4338ca', borderWidth: 1.5, borderDash: [5, 5],
+                    fill: false, pointRadius: 0,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Marginal Rate',
+                    data: margRatePoints,
+                    borderColor: '#f97316', borderWidth: 2, borderDash: [3, 3],
+                    fill: false, pointRadius: 0, tension: 0.1,
+                    yAxisID: 'yRight'
+                }
+            ];
+
+            if (targetNet !== null) {
+                datasets.push({
+                    label: 'Target Net',
+                    data: grossPoints.map(() => Math.round(targetNet)),
+                    borderColor: '#f59e0b', borderWidth: 2, borderDash: [6, 4],
+                    fill: false, pointRadius: 0,
+                    yAxisID: 'y'
+                });
+
+                if (requiredGross !== null) {
+                    const dotIdx = grossPoints.reduce((best, g, i) =>
+                        Math.abs(g - requiredGross) < Math.abs(grossPoints[best] - requiredGross) ? i : best, 0);
+                    datasets.push({
+                        label: 'Required Gross',
+                        data: grossPoints.map((g, i) => i === dotIdx ? Math.round(targetNet) : null),
+                        borderColor: '#f59e0b', backgroundColor: '#f59e0b',
+                        borderWidth: 0, pointRadius: grossPoints.map((g, i) => i === dotIdx ? 8 : 0),
+                        pointBackgroundColor: '#f59e0b', fill: false, showLine: false,
+                        yAxisID: 'y'
+                    });
+                }
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15,23,42,0.95)',
+                            titleColor: '#e2e8f0', bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+                            filter: ctx => ctx.datasetIndex === 0 || ctx.datasetIndex === 2,
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.datasetIndex === 0) {
+                                        const g = grossPoints[ctx.dataIndex], n = netPoints[ctx.dataIndex];
+                                        return [`Net: £${n.toLocaleString()}`, `All-In Tax: ${(((g-n)/g)*100).toFixed(1)}%`];
+                                    }
+                                    if (ctx.datasetIndex === 2) {
+                                        return `Marginal Rate: ${margRatePoints[ctx.dataIndex]}%`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8', callback: v => "£" + (v/1000) + "k" }
+                        },
+                        yRight: {
+                            position: 'right',
+                            min: 0, max: 100,
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#f97316', callback: v => v + "%" }
+                        },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', callback: (val, index) => index % 20 === 0 ? "£" + index + "k" : null } }
+                    }
+                }
+            });
+        }
+
+        window.onload = function () { setTargetMode('company'); };
+    </script>
+</body>
+</html>
